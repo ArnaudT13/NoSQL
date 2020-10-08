@@ -5,6 +5,7 @@
 
 import redis
 r = redis.Redis(host='localhost', port=6379, db=1)
+call_state_list = ['Unstarted', 'In progress','Finished']
 operator_list_name = "operators"
 call_list_name = "calls"
 
@@ -19,7 +20,7 @@ def add_operator(id, lastname, firstname, birthdate, income_date):
 
 def add_call(id, call_hour, origin_phone_number, state, call_duration, operator_id, description):
 	key = call_list_name + ":" + str(id)
-	if r.exists("operators:" + str(operator_id)): 
+	if r.exists(operator_list_name + ":" + str(operator_id)): 
 		r.hset(key, "callHour", call_hour)
 		r.hset(key, "originPhoneNumber", origin_phone_number)
 		r.hset(key, "state", state)
@@ -28,11 +29,23 @@ def add_call(id, call_hour, origin_phone_number, state, call_duration, operator_
 		r.hset(key, "description", description)
 	else:
 		print("Operator doesn't exist. Operation aborted")
+		
+def update_state(id, state):
+	key = call_list_name + ":" + str(id)
+	if r.exists(call_list_name + ":" + str(id)):
+		r.hset(key, "state", state)
+	else:
+		print("Call doesn't exist. Operation aborted")
+		
+
+#add_operator(1, "etienne", "tom", "15/03/1998", "10/12/2019")
+#add_operator(2, "tom", "andre", "12/03/1998", "20/12/2019")
+
+#add_call(1, "12:00:01", "0410121314", call_state_list[1], "12m", 1, "Appel SAV")
+#add_call(2, "12:00:59", "0410121315", call_state_list[2], "12m", 2, "Appel SAV")
+
+update_state(2, call_state_list[0])
 
 
-add_operator(1, "etienne", "tom", "15/03/1998", "10/12/2019")
-add_operator(2, "tom", "andre", "12/03/1998", "20/12/2019")
-
-add_call(1, "12:00:01", "0410121314", "finished", "12m", 1, "Appel SAV")
 
 
