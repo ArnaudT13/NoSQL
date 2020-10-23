@@ -35,7 +35,7 @@ async function main(){
         db = await client.db(dbName);
  
         // Création des collections (dans le cas de la première création)
-        await createCollections([teamsCollectionName, playersCollectionName, matchsCollectionName, playerStatsCollectionName])
+        await createCollections([teamsCollectionName, playersCollectionName, matchsCollectionName, playerStatsCollectionName]);
         
         // Insertion des joueurs
         await insertPlayer(1, "Mbappé", "Kylian", new Date("1998-12-20"), 1.78, 73, "Attaquant");
@@ -224,13 +224,13 @@ async function displayPlayerMarksForAMatch(matchId){
 	
 	console.log("Match ", homeTeamName, " ", playerMarksDict.homeScore, " - ", playerMarksDict.outsideScore, " ", outsideTeamName);
 	
-	console.log("- Notes de l'équipe ", homeTeamName, " :")
+	console.log("- Notes de l'équipe ", homeTeamName, " :");
 	// Les scores sont stockés dans un dictionnaire, on itère donc sur l'ensemble des valeurs contenues dans celui-ci
 	for (const [key, value] of Object.entries(playerMarksDict.homePlayers)) {
   		console.log("   ", await getPlayerLastnameAndFirstnameFromPlayerId(Number(key)), ": ", value, "/10");
 	}
 	
-	console.log("- Notes de l'équipe ", outsideTeamName, " :")
+	console.log("- Notes de l'équipe ", outsideTeamName, " :");
 	for (const [key, value] of Object.entries(playerMarksDict.outsidePlayers)) {
   		console.log("   ", await getPlayerLastnameAndFirstnameFromPlayerId(Number(key)), ": ", value, "/10");
 	}
