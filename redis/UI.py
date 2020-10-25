@@ -11,11 +11,14 @@ Table model du tableview central
 
 """ 
 class MyTableModel(QAbstractTableModel):
-    
-    def __init__(self, datain, parent=None):
-        QAbstractTableModel.__init__(self, parent)
-        self.arraydata = datain
 
+
+
+    def __init__(self, datain, headerdata, parent=None): 
+        QAbstractTableModel.__init__(self, parent) 
+        self.arraydata = datain
+        self.headerdata = headerdata
+        self._tab = 0
    
     def rowCount(self, parent):
         return len(self.arraydata)
@@ -33,71 +36,21 @@ class MyTableModel(QAbstractTableModel):
             return None
         return self.arraydata[index.row()][index.column()]
 
-class TableModel(QAbstractTableModel):
-    def __init__(self, parent, datain, headerdata):
-        QAbstractTableModel.__init__(self, parent)
+    def setTab(self, tab):
+        self._tab = tab
 
-        self.arraydata=datain
-        self.headerdata=headerdata
-
-    def rowCount(self,p):
-        return len(self.arraydata)
-
-    def columnCount(self,p):
-        if len(self.arraydata)>0:
-            return len(self.arraydata[0])
-        return 0
-
-    def data(self, index, role):
-        if not index.isValid():
-            return QVariant()
-        elif role != Qt.DisplayRole:
-            return QVariant()
-        return QVariant(self.arraydata[index.row()][index.column()])
-
-    def headerData(self, col, orientation, role):
-        if orientation==Qt.Horizontal and role==Qt.DisplayRole:
-            return self.headerdata[col]
-        return None
-
-class MyHeaderView(QtWidgets.QHeaderView):
-    def __init__(self,parent):
-        QtWidgets.QHeaderView.__init__(self,Qt.Horizontal,parent)
-        self.sectionResized.connect(self.myresize)
-
-    def myresize(self, *args):
-        '''Resize while keep total width constant'''
-
-        # keep a copy of column widths
-        ws=[]
-        for c in range(self.count()):
-            wii=self.sectionSize(c)
-            ws.append(wii)
-
-        if args[0]>0 or args[0]<self.count():
-            for ii in range(args[0],self.count()):
-                if ii==args[0]:
-                    # resize present column
-                    self.resizeSection(ii,args[2])
-                elif ii==args[0]+1:
-                    # if present column expands, shrink the one to the right
-                    self.resizeSection(ii,ws[ii]-(args[2]-args[1]))
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                if(self._tab == 1):
+                    return (cc.get_operators_keys())[section]
                 else:
-                    # keep all others as they were
-                    self.resizeSection(ii,ws[ii])
+                    return (cc.get_calls_keys())[section]
+        
+            if orientation == Qt.Vertical:
+                return ([str(counter) for counter in range(1,len(self.arraydata)+1)])[section]
 
-    def resizeEvent(self, event):
-        """Resize table as a whole, need this to enable resizing"""
-
-        super(QtWidgets.QHeaderView, self).resizeEvent(event)
-        self.setSectionResizeMode(1,QtWidgets.QHeaderView.Stretch)
-        for column in range(self.count()):
-            self.setSectionResizeMode(column, QtWidgets.QHeaderView.Stretch)
-            width = self.sectionSize(column)
-            self.setSectionResizeMode(column, QtWidgets.QHeaderView.Interactive)
-            self.resizeSection(column, width)
-
-        return
 
 """ 
 Fenetre graphique (Pop-up) utilisée en cas d'erreurs (oublie de paramètres, entrées vides, ...)
@@ -124,7 +77,7 @@ class Ui_MainWindow(object):
         #GET ALL KEYS !
         for i in range(0,len(self.arraydata[0])):
             print(self.arraydata[i])
-            self.setHeaderData(i, Qt.Horizontal, self.arraydata[i])
+            #self.setHeaderData(i, Qt.Horizontal, self.arraydata[i])
 
 
     """ 
@@ -133,7 +86,9 @@ class Ui_MainWindow(object):
     :return: returns nothing 
     """ 
     def display_all_calls(self):
-        calls_views_model = MyTableModel(cc.get_all_calls(), self)
+        header = []
+        calls_views_model = MyTableModel(cc.get_all_calls(), header, self)
+        calls_views_model.setTab(0)
         self.view_calls.setModel(calls_views_model)
         print("Query \"display_all_calls\" : Done")
 
@@ -188,7 +143,9 @@ class Ui_MainWindow(object):
     :return: returns nothing 
     """
     def display_all_operators(self):
-        calls_views_model = MyTableModel(cc.get_all_operators(), self)
+        header = []
+        calls_views_model = MyTableModel(cc.get_all_operators(), header, self)
+        calls_views_model.setTab(1)
         self.view_calls.setModel(calls_views_model)
         print("Query display_all_operators : Done")
     
