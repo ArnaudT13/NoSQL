@@ -166,6 +166,27 @@ def get_all_calls():
 
 
 """ 
+Permet d'obtenir les clés de tous les operateurs, i.e. "ID"," Nom", ... 
+
+:return: liste de cles
+""" 
+def get_operators_keys():
+	key = operator_list_name + ":" + "1"
+
+	return [call_id.decode("utf-8") for call_id in list( r.hkeys(key) ) ]
+
+
+""" 
+Permet d'obtenir les clés de tous les appels, i.e. "ID"," Duree", ... 
+
+:return: liste de cles
+""" 
+def get_calls_keys():
+	key = call_list_name + ":" + "1"
+
+	return [call_id.decode("utf-8") for call_id in list( r.hkeys(key) ) ]
+
+""" 
 Permet d'obtenir la liste de tous les appels suivant des critères de recherche
 
 :param operator: tous les appels concernant cet opérateur. Par défault, '*' signifie tous les opérateurs
@@ -207,4 +228,4 @@ change_call_state(call_state_list[0], 1)
 change_call_state(call_state_list[0], 2)
 change_call_state(call_state_list[1], 3)
 """
-print(get_all_operators())
+
