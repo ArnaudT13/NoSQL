@@ -1,10 +1,10 @@
-# import sys
-from PyQt5 import QtWidgets, uic
-from PyQt5.Qt import *
+#!/usr/bin/python3.7
 
+from PyQt5.Qt import *
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import call_center as cc
-from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 """ 
 Table model du tableview central
@@ -102,6 +102,7 @@ class Ui_MainWindow(object):
         if((self.edit_lastname.text() != '' ) & (self.edit_firstname.text() != '' ) & (self.edit_birthdate.text() != '' ) & (self.edit_income.text() != '')):
             cc.add_operator(self.edit_id_operator.text(), self.edit_lastname.text(), self.edit_firstname.text(), self.edit_birthdate.text(), self.edit_income.text())
             self.update_operator_combo()
+            self.display_all_operators()
             print("Query \"add_operator\" : Done")
         else:
             msg = MessageBox()
@@ -130,15 +131,19 @@ class Ui_MainWindow(object):
     :return: returns nothing 
     """ 
     def update_operator_combo(self):
-        for i in range(0, self.combo_operator_call.count()):
-            self.combo_operator_call.removeItem(i)
-        
+        # Combo
+        self.combo_operator_call.clear()
+
+        # Combo in all views
+        self.combo_operator.clear()
+        self.combo_operator.addItem("Tous")
         for operator_name in cc.get_all_operators_names():
             self.combo_operator_call.addItem(operator_name)
+            self.combo_operator.addItem(operator_name)
 
     
     """ 
-    Affiche tous les opéraateurs en actualisant le model du tableau central
+    Affiche tous les opérateurs en actualisant le model du tableau central
 
     :return: returns nothing 
     """
