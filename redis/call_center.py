@@ -6,11 +6,13 @@
 import redis
 import datetime
 import ast
+import re
+
 # Connexion avec la base redis
 r = redis.Redis(host='localhost', port=6379, db=1)
 
 # Etat des appels
-call_state_list = ['unaffected', 'ignored','inprogress', 'finished']
+call_state_list = ['inprogress','finished', 'ignored','unaffected']
 
 # Noms des structures hash
 operator_list_name   = "operators"
@@ -29,7 +31,12 @@ Permet d'ajouter un opérateur dans la base redis.
 :return: returns nothing 
 """ 
 def add_operator(id, lastname, firstname, birthdate, income_date):
-	key = operator_list_name + ":" + str(id) # Spécifie la hash et l'id de l'opérateur
+
+	# Get last id in calls
+	id_operator= get_last_id_of_table('operators') + 1
+
+	# Spécifie la hash et l'id de l'opérateur
+	key = operator_list_name + ":" + str(id_operator)
 	r.hset(key, "lastname", lastname)
 	r.hset(key, "firstname", firstname)
 	r.hset(key, "birthdate", birthdate)
@@ -42,8 +49,10 @@ Permet d'obtenir la liste de tous les opérateurs enregistrés
 :return: une liste de tous les opérateurs 
 """ 
 def get_all_operators():
-	key = operator_list_name + ":" + "*"
-	keys_operators = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+	#key = operator_list_name + ":" + "*"
+	#keys_operators = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+
+	keys_operators = ["operators:"+str(ids) for ids in get_all_id_of_table('operators') ] 
 
 	all_operators = []
 	for operator in keys_operators:
@@ -63,10 +72,26 @@ def get_all_operators_names():
 
 	all_operators_names = []
 	for operator in keys_operators:
-		all_operators_names.append( r.hget(operator, "firstname").decode('utf-8') )
-	
+		all_operators_names.append(r.hget(operator, "firstname").decode('utf-8') + " " +r.hget(operator, "lastname").decode('utf-8'))
+
+
 	return all_operators_names
 
+""" 
+Permet d'obtenir la liste de tous les prénoms des opérateurs enregistrés
+
+:return: une liste de tous les prénom des opérateurs 
+""" 
+def get_name_of_operator_id(id = 0):
+	key = operator_list_name + ":" + id
+	keys_operators = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+
+	all_operators_names = []
+	for operator in keys_operators:
+		all_operators_names.append(r.hget(operator, "firstname").decode('utf-8') + " " +r.hget(operator, "lastname").decode('utf-8'))
+
+	print(all_operators_names)
+	return all_operators_names
 
 """ 
 Permet d'ajouter un appel entrant dans la base redis. 
@@ -80,13 +105,18 @@ Permet d'ajouter un appel entrant dans la base redis.
 
 :return: returns nothing 
 """ 
-def add_call(id, call_hour, origin_phone_number, call_duration, operator_id, description):
-	key = call_list_name + ":" + str(id)
+def add_call(id, call_hour, origin_phone_number, call_duration, operator_id, state_id):
+	# Get last id in calls
+	id_call= get_last_id_of_table('calls') + 1
+
+	key = call_list_name + ":" + str(id_call)
 	r.hset(key, "callHour", call_hour)
 	r.hset(key, "originPhoneNumber", origin_phone_number)
 	r.hset(key, "callDuration", call_duration)
-	r.hset(key, "operatorId", operator_id)
-	r.hset(key, "description", description)
+	r.hset(key, "operatorId", operator_id + 1)
+	r.hset(key, "description", "Appel SAV")
+
+	set_call_state(call_state_list[state_id], id_call)
 
 
 """ 
@@ -154,9 +184,8 @@ Permet d'obtenir la liste de tous les appels
 :return: liste d'appels
 """ 
 def get_all_calls():
-	key = call_list_name + ":" + "*"
-
-	all_keys = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+	#all_keys.sort(key=lambda x: x.split(':')[1])
+	all_keys = ["calls:"+str(ids) for ids in get_all_id_of_table('calls') ] 
 
 	all_calls = []
 	for call in all_keys:
@@ -195,19 +224,54 @@ Permet d'obtenir la liste de tous les appels suivant des critères de recherche
 
 :return: liste d'appels
 """ 	
-def filter(operator = "*", state = "*"):
-	key = call_list_name + ":" + "*"
+def filter(state_id):
 
-	all_keys = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+	print(state_id)
+	if(state_id == 0):
+		all_keys_state = [call_id.decode("utf-8") for call_id in list( r.keys("callstates:*") ) ]
+	else:
+		all_keys_state = [call_id.decode("utf-8") for call_id in list( r.keys("callstates:" + call_state_list[state_id - 1]) ) ]
 
-	all_calls = []
-	for call in all_keys:
-		all_calls.append([call_id.decode("utf-8") for call_id in list( r.hgetall(call).values() ) ])
+	all_calls_with_state = []
+	for call in all_keys_state:
+		all_calls_with_state.append(["calls:" + call_id.decode("utf-8") for call_id in list( r.smembers(call)) ]) 
 	
-	return all_calls
+	# Convert into one list
+	all_calls_with_state = [item for sublist in all_calls_with_state for item in sublist]
 
 
+	all_calls_with_members = []
+	for call in all_calls_with_state:
+		all_calls_with_members.append([call_id.decode("utf-8") for call_id in list( r.hgetall(call).values() ) ])
+	
+	print(all_calls_with_members)
+	return all_calls_with_members
 
+
+""" 
+Permet d'obtenir toutes les clés d'une table
+
+:return: liste d'ids en int orodonnés dans l'ordre coirssant
+""" 
+def get_all_keys_of_table(table = 'calls'):
+	key = table + ":" + "*"
+	return [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
+
+def get_all_id_of_table(table = 'calls', asc = True):
+	all_keys_of_table = get_all_keys_of_table(table)
+	
+	all_ids_of_table = []
+	for k in all_keys_of_table:	
+		matches = re.search(r'[^a-zA-Z_](\d+)', k)
+		all_ids_of_table.append(int(matches.group(1))) if matches else None
+
+	# Sorting id 
+	all_ids_of_table.sort() if asc else all_ids_of_table.sort(reverse=True)
+
+	return all_ids_of_table
+
+def get_last_id_of_table(table = 'calls'):
+	return max(get_all_id_of_table(table))
 
 # Test 	
 """
@@ -228,4 +292,5 @@ change_call_state(call_state_list[0], 1)
 change_call_state(call_state_list[0], 2)
 change_call_state(call_state_list[1], 3)
 """
-
+get_all_calls()
+#print(get_all_calls())
