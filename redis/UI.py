@@ -12,8 +12,6 @@ Table model du tableview central
 """ 
 class MyTableModel(QAbstractTableModel):
 
-
-
     def __init__(self, datain, headerdata, parent=None): 
         QAbstractTableModel.__init__(self, parent) 
         self.arraydata = datain
@@ -50,6 +48,11 @@ class MyTableModel(QAbstractTableModel):
         
             if orientation == Qt.Vertical:
                 return ([str(counter) for counter in range(1,len(self.arraydata)+1)])[section]
+                # if(self._tab == 1):
+                #     return (cc.get_all_id_of_table('operators'))[section]
+                # else:
+                #     return (cc.get_all_id_of_table('calls'))[section]
+                #return (cc.get_all_id_of_table('calls'))[section]
 
 
 """ 
@@ -90,7 +93,7 @@ class Ui_MainWindow(object):
         calls_views_model = MyTableModel(cc.get_all_calls(), header, self)
         calls_views_model.setTab(0)
         self.view_calls.setModel(calls_views_model)
-        print("Query \"display_all_calls\" : Done")
+        print(bcolors.OKGREEN+ "Query \"display_all_calls\" : SUCCESS" + bcolors.ENDC) 
 
 
     """ 
@@ -103,11 +106,10 @@ class Ui_MainWindow(object):
             cc.add_operator(self.edit_id_operator.text(), self.edit_lastname.text(), self.edit_firstname.text(), self.edit_birthdate.text(), self.edit_income.text())
             self.update_operator_combo()
             self.display_all_operators()
-            print("Query \"add_operator\" : Done")
+            print(bcolors.OKGREEN + "Query \"add_operator\" : SUCCESS" + bcolors.ENDC )
         else:
             msg = MessageBox()
-            print("Query \"add_operator\" : Abort")
-    
+            print(bcolors.FAIL + "Query \"add_operator\" : FAILED" + bcolors.ENDC)
 
     """ 
     Permet d'ajouter graphiquement un appel dans le base redis
@@ -117,12 +119,12 @@ class Ui_MainWindow(object):
     def add_call(self):
         if((self.edit_id_call.text() != '' ) & (self.edit_hours.text() != '' ) & (self.edit_length.text() != '' ) & (self.edit_num.text() != '') ):
             #add_call(id, call_hour, origin_phone_number, call_duration, operator_id, description):
-            cc.add_call(self.edit_id_call.text(), self.edit_hours.text(), self.edit_num.text(), self.edit_length.text(), self.combo_operator_call.currentIndex(), "Appel Sav") 
+            cc.add_call(self.edit_id_call.text(), self.edit_hours.text(), self.edit_num.text(), self.edit_length.text(), self.combo_operator_call.currentIndex(), self.combo_state_call.currentIndex()) 
             self.display_all_calls()
-            print("Query \"add_call\" : Done")
+            print(bcolors.OKGREEN + "Query \"add_call\" : SUCCESS" + bcolors.ENDC)
         else:
             msg = MessageBox()
-            print("Query : \"add_call\" : Abort")
+            print(bcolors.FAIL + "Query : \"add_call\" : FAILED" + bcolors.ENDC)
 
 
     """ 
@@ -131,7 +133,7 @@ class Ui_MainWindow(object):
     :return: returns nothing 
     """ 
     def update_operator_combo(self):
-        # Combo
+        # Combo in call windows 
         self.combo_operator_call.clear()
 
         # Combo in all views
@@ -152,8 +154,16 @@ class Ui_MainWindow(object):
         calls_views_model = MyTableModel(cc.get_all_operators(), header, self)
         calls_views_model.setTab(1)
         self.view_calls.setModel(calls_views_model)
-        print("Query display_all_operators : Done")
+        print(bcolors.OKGREEN + "Query \"display_all_operators\" : SUCCESS " + bcolors.ENDC)
     
+    def display_all_calls_with_filter(self):
+        header = []
+
+        calls_views_model = MyTableModel(cc.filter(self.combo_state.currentIndex()), header, self)
+        calls_views_model.setTab(2)
+        self.view_calls.setModel(calls_views_model)
+        print(bcolors.OKGREEN+ "Query \"display_all_calls_with_filter\" : SUCCESS" + bcolors.ENDC) 
+
     
     """ 
     Adapte le model du tableau suivant la tab selectionné.
@@ -163,7 +173,7 @@ class Ui_MainWindow(object):
     :return: returns nothing 
     """
     def onChangedTab(self):
-        print()
+
         if(self.table_management.currentIndex() == 1):
             self.display_all_operators()
         else:
@@ -212,11 +222,13 @@ class Ui_MainWindow(object):
         self.label_5.setObjectName("label_5")
         self.combo_state_call = QtWidgets.QComboBox(self.widget_calls_management)
         self.combo_state_call.setGeometry(QtCore.QRect(390, 30, 121, 22))
+
         self.combo_state_call.setObjectName("combo_state_call")
-        self.combo_state_call.addItem("En cours")
-        self.combo_state_call.addItem("Fini")
-        self.combo_state_call.addItem("Ignoré")
-        self.combo_state_call.addItem("Non-affecté")
+        self.combo_state_call.addItem("inprogress")
+        self.combo_state_call.addItem("finished")
+        self.combo_state_call.addItem("ignored")
+        self.combo_state_call.addItem("unaffected")
+
         self.combo_operator_call = QtWidgets.QComboBox(self.widget_calls_management)
         self.combo_operator_call.setGeometry(QtCore.QRect(540, 30, 181, 22))
         self.combo_operator_call.setObjectName("combo_operator_call")
@@ -294,12 +306,18 @@ class Ui_MainWindow(object):
         self.combo_state = QtWidgets.QComboBox(self.tab)
         self.combo_state.setGeometry(QtCore.QRect(10, 60, 121, 22))
         self.combo_state.setObjectName("combo_state")
-        self.combo_state.addItem("")
+        self.combo_state.addItem("*")
+        self.combo_state.addItem("inprogress")
+        self.combo_state.addItem("finished")
+        self.combo_state.addItem("ignored")
+        self.combo_state.addItem("unaffected")
+
         self.label_filter = QtWidgets.QLabel(self.tab)
         self.label_filter.setGeometry(QtCore.QRect(10, 10, 211, 16))
         self.label_filter.setObjectName("label_filter")
         self.combo_operator = QtWidgets.QComboBox(self.tab)
         self.combo_operator.setGeometry(QtCore.QRect(170, 60, 121, 22))
+
         self.combo_operator.setObjectName("combo_operator")
         self.combo_operator.addItem("Tous")
         for operator_name in operator_list:
@@ -314,6 +332,7 @@ class Ui_MainWindow(object):
         self.button_rechercher = QtWidgets.QPushButton(self.tab)
         self.button_rechercher.setGeometry(QtCore.QRect(530, 100, 251, 25))
         self.button_rechercher.setObjectName("button_rechercher")
+        self.button_rechercher.clicked.connect(self.display_all_calls_with_filter) 
 
         self.table_management.addTab(self.tab, "")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -321,6 +340,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.table_management.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
 
     """ 
     Gestion des textes dans l'UI
@@ -339,6 +359,12 @@ class Ui_MainWindow(object):
         self.combo_state_call.setItemText(2, _translate("MainWindow", "Igoré"))
         self.combo_state_call.setItemText(3, _translate("MainWindow", "Non-affecté"))
 
+        self.combo_state.setItemText(0, _translate("MainWindow", "Tous"))
+        self.combo_state.setItemText(1, _translate("MainWindow", "En cours"))
+        self.combo_state.setItemText(2, _translate("MainWindow", "Fini"))
+        self.combo_state.setItemText(3, _translate("MainWindow", "Igoré"))
+        self.combo_state.setItemText(4, _translate("MainWindow", "Non-affecté"))
+
         self.label_operator_name_call.setText(_translate("MainWindow", "Operateur"))
         self.button_add_call.setText(_translate("MainWindow", "Ajouter l\'appel"))
 
@@ -350,8 +376,7 @@ class Ui_MainWindow(object):
         self.label_income.setText(_translate("MainWindow", "Date d\'arrivée"))
         self.button_add_operator.setText(_translate("MainWindow", "Ajouter l\'opérateur"))
         self.table_management.setTabText(self.table_management.indexOf(self.widget_operators_management), _translate("MainWindow", "Operateurs"))
-        self.combo_state.setItemText(0, _translate("MainWindow", "Tous"))
-        self.combo_state.setItemText(1, _translate("MainWindow", "Tous"))
+    
         self.label_filter.setText(_translate("MainWindow", "Filtres"))
         self.combo_operator.setItemText(0, _translate("MainWindow", "Tous"))
 
@@ -370,6 +395,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 if __name__ == "__main__" :
     app = QtWidgets.QApplication( sys.argv )
 
@@ -382,3 +418,4 @@ if __name__ == "__main__" :
     
     #app.exec()
     sys.exit( app.exec_() )
+
