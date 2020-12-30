@@ -33,9 +33,27 @@ async function main(){
         // Connection à la base de données
         await client.connect();
         db = await client.db(dbName);
- 
-        // Création des collections (dans le cas de la première création)
-        await createCollections([teamsCollectionName, playersCollectionName, matchsCollectionName, playerStatsCollectionName]);
+
+        // On récupère la liste des collections
+        let collections = await db.listCollections().toArray();
+		let collectionNames = collections.map(c => c.name);
+
+        // Création des collections (s'il n'existe pas déjà)
+        if(! collectionNames.includes(teamsCollectionName)){
+        	await createCollections([teamsCollectionName]);
+        }
+
+        if(! collectionNames.includes(playersCollectionName)){
+        	await createCollections([playersCollectionName]);
+        }
+
+        if(! collectionNames.includes(matchsCollectionName)){
+        	await createCollections([matchsCollectionName]);
+        }
+
+        if(! collectionNames.includes(playerStatsCollectionName)){
+        	await createCollections([playerStatsCollectionName]);
+        }
         
         // Insertion des joueurs
         await insertPlayer(1, "Mbappé", "Kylian", new Date("1998-12-20"), 1.78, 73, "Attaquant");
