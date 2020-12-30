@@ -19,7 +19,7 @@ const dbName = 'football';
 const teamsCollectionName = 'Equipes';
 const playersCollectionName = 'Joueurs';
 const matchsCollectionName = 'Matchs';
-const playerStatsCollectionName = 'PlayerStats';
+const playerStatsCollectionName = 'JoueursStats';
 
 // Limite à partir de laquelle la moyenne des joueurs est calculée
 const averageCalculationLimit = 3;
