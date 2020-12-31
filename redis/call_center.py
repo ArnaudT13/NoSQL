@@ -19,10 +19,10 @@ operator_list_name   = "operators"
 call_list_name		 = "calls"
 call_state_list_name = "callstates"
 
-""" 
-Permet d'ajouter un opérateur dans la base redis. 
 
-:param id: Id de l'operateur 
+""" 
+Permet d'ajouter un opérateur dans la DB redis. L'ID de l'operateur est généré automatiquement.  
+
 :param lastname: Nom de l'operateur
 :param firstname: Prénom de l'operateur
 :param birthdate: Date de naissance de l'operateur
@@ -30,9 +30,9 @@ Permet d'ajouter un opérateur dans la base redis.
 
 :return: returns nothing 
 """ 
-def add_operator(id, lastname, firstname, birthdate, income_date):
+def add_operator(lastname, firstname, birthdate, income_date):
 
-	# Get last id in calls
+	# Permets d'obenir le dernier ID des opérateurs et attribue l'id+1 au nouvel opérateur
 	id_operator= get_last_id_of_table('operators') + 1
 
 	# Spécifie la hash et l'id de l'opérateur
@@ -44,38 +44,35 @@ def add_operator(id, lastname, firstname, birthdate, income_date):
 
 
 """ 
-Permet d'obtenir la liste de tous les opérateurs enregistrés
+Permet d'obtenir la liste de tous les opérateurs enregistrés dans la DB. 
 
 :return: une liste de tous les opérateurs 
 """ 
 def get_all_operators():
-	#key = operator_list_name + ":" + "*"
-	#keys_operators = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
-
+	# On recupere toutes les clés des operateurs
 	keys_operators = ["operators:"+str(ids) for ids in get_all_id_of_table('operators') ] 
 
 	all_operators = []
 	for operator in keys_operators:
+		# On recupere les infos d'un opérateur suivant la clé 'operator'
 		all_operators.append([call_id.decode("utf-8") for call_id in list( r.hgetall(operator).values() ) ])
 	
 	return all_operators
 
 
 """ 
-Permet d'obtenir la liste de tous les prénoms des opérateurs enregistrés
+Permet d'obtenir la liste de tous les noms et prénoms des opérateurs enregistrés. La fonctions suivante réutilise la fonciton get_all_operators().
 
-:return: une liste de tous les prénom des opérateurs 
+:return: une liste de tous les noms, prénom des opérateurs 
 """ 
 def get_all_operators_names():
-	key = operator_list_name + ":" + "*"
-	keys_operators = [call_id.decode("utf-8") for call_id in list( r.keys(key) ) ]
-
+	all_operators = get_all_operators()
 	all_operators_names = []
-	for operator in keys_operators:
-		all_operators_names.append(r.hget(operator, "firstname").decode('utf-8') + " " +r.hget(operator, "lastname").decode('utf-8'))
-
-
+	for operator in all_operators:
+		all_operators_names.append(str(operator[0] + " " + operator[1]))
+	
 	return all_operators_names
+
 
 """ 
 Permet d'obtenir la liste de tous les prénoms des opérateurs enregistrés
@@ -88,15 +85,18 @@ def get_name_of_operator_id(id = 0):
 
 	all_operators_names = []
 	for operator in keys_operators:
-		all_operators_names.append(r.hget(operator, "firstname").decode('utf-8') + " " +r.hget(operator, "lastname").decode('utf-8'))
+		all_operators_names.append(
+			#r.hget(operator, "id").decode('utf-8') + " " + 
+			r.hget(operator, "firstname").decode('utf-8') + " " +
+			r.hget(operator, "lastname").decode('utf-8'))
 
 	print(all_operators_names)
 	return all_operators_names
 
-""" 
-Permet d'ajouter un appel entrant dans la base redis. 
 
-:param id: Id de l'appel 
+""" 
+Permet d'ajouter un appel dans la base redis. L'ID de l'appel est généré automatiquement.
+
 :param call_hour: Heure d'appel
 :param origin_phone_number: Numéro de l'appel
 :param call_duration: Durée de l'appel
@@ -105,7 +105,7 @@ Permet d'ajouter un appel entrant dans la base redis.
 
 :return: returns nothing 
 """ 
-def add_call(id, call_hour, origin_phone_number, call_duration, operator_id, state_id):
+def add_call(call_hour, origin_phone_number, call_duration, operator_id, state_id, description = "Appel SAV"):
 	# Get last id in calls
 	id_call= get_last_id_of_table('calls') + 1
 
@@ -113,19 +113,17 @@ def add_call(id, call_hour, origin_phone_number, call_duration, operator_id, sta
 	r.hset(key, "callHour", call_hour)
 	r.hset(key, "originPhoneNumber", origin_phone_number)
 	r.hset(key, "callDuration", call_duration)
-	r.hset(key, "operatorId", operator_id + 1)
-	r.hset(key, "description", "Appel SAV")
+	r.hset(key, "operatorId", operator_id)
+	r.hset(key, "description", description)
 
 	set_call_state(call_state_list[state_id], id_call)
 
 
 """ 
-Permet de definir l'état d'un appel
+Permet de definir l'état d'un appel à partir de l'ID de l'appel
 
-:param state: état 
+:param state: état
 :param call_id: id de l'appel
-
-:return: returns nothing 
 """ 
 def set_call_state(state, call_id):
 	key = call_state_list_name + ":" + state
@@ -138,9 +136,9 @@ def set_call_state(state, call_id):
 	
 	
 """ 
-Permet de changer l'état d"un appel
+Permet de changer l'état d"un appel suivant un ID d'appel donné en parametre
 
-:param state: état 
+:param state: nouvel état 
 :param call_id: id de l'appel
 
 :return: returns nothing 
@@ -154,8 +152,7 @@ def change_call_state(state, call_id):
 		for i_state in call_state_list:
 			if state != i_state:
 				r.srem(call_state_list_name + ":" + i_state, call_id)
-
-					
+			
 		# Ajout de l'appel dans le bon état		
 		r.sadd(key, call_id)
 	else:
@@ -163,7 +160,7 @@ def change_call_state(state, call_id):
 
 		
 """ 
-Permet d'obtenir la liste des appels en fonction de l'état
+Permet d'obtenir la liste des IDs des appels en fonction de l'état en parametre
 
 :param state: état 
 
@@ -171,15 +168,15 @@ Permet d'obtenir la liste des appels en fonction de l'état
 """ 
 def get_calls_id_with_state(state):
 	key = call_state_list_name + ":" + state
-	
 	return [call_id.decode("utf-8") for call_id in list(r.smembers(key))] 
 
 
-# Permet d'obtenir la liste des appels en fonction de l'état
-# 1. KEYS *
-# 2. HGETALL
 """ 
-Permet d'obtenir la liste de tous les appels
+Permet d'obtenir la liste de tous les appels dans la base
+
+ORDRE QUERIES :
+1. KEYS *
+2. HGETALL
 
 :return: liste d'appels
 """ 
@@ -218,34 +215,48 @@ def get_calls_keys():
 """ 
 Permet d'obtenir la liste de tous les appels suivant des critères de recherche
 
-:param operator: tous les appels concernant cet opérateur. Par défault, '*' signifie tous les opérateurs
-:param state: état de recherche. Par défault, '*' signifie tous les états
-
+:param operator: tous les appels concernant cet opérateur. Par défault, '0' signifie tous les opérateurs
+:param state: état de recherche. Par défault, '0' signifie tous les états
+:param mapping: correspondance entre l'index d'un élément du combobox au l'ID de l'operateur
 
 :return: liste d'appels
 """ 	
-def filter(state_id):
+def filter(state_id, operator_id_combo, mapping):
+	all_calls_with_members = []
 
-	print(state_id)
-	if(state_id == 0):
-		all_keys_state = [call_id.decode("utf-8") for call_id in list( r.keys("callstates:*") ) ]
-	else:
+	## ETAPE 1 : ETATS DES APPELS
+	if(state_id != 0):
+		# On recupere les appels des etats à partir de state_id
 		all_keys_state = [call_id.decode("utf-8") for call_id in list( r.keys("callstates:" + call_state_list[state_id - 1]) ) ]
 
-	all_calls_with_state = []
-	for call in all_keys_state:
-		all_calls_with_state.append(["calls:" + call_id.decode("utf-8") for call_id in list( r.smembers(call)) ]) 
-	
-	# Convert into one list
-	all_calls_with_state = [item for sublist in all_calls_with_state for item in sublist]
+		# On récupère les clés pour chaque appel
+		all_calls_with_state = []
+		for call in all_keys_state:
+			all_calls_with_state.append(["calls:" + call_id.decode("utf-8") for call_id in list( r.smembers(call)) ]) 
+		
+		# Convertion de listes multiples en une seule, i.e. [ [], [ [], [], [] ], ... ] => [ [], [], ... , [] ]
+		all_calls_with_state = [item for sublist in all_calls_with_state for item in sublist]
+
+		# Liste filtreé
+		for call in all_calls_with_state:
+			all_calls_with_members.append([call_id.decode("utf-8") for call_id in list( r.hgetall(call).values() ) ])
+	else:
+		all_calls_with_members = get_all_calls()
 
 
-	all_calls_with_members = []
-	for call in all_calls_with_state:
-		all_calls_with_members.append([call_id.decode("utf-8") for call_id in list( r.hgetall(call).values() ) ])
-	
-	print(all_calls_with_members)
-	return all_calls_with_members
+	## ETAPE 2 : OPERATEURS
+	# On filtre de nouveau la liste obtenu suivant les opérateurs (avec en plus mapping suivant combobox)
+	all_calls_filtered = []
+	if(operator_id_combo != 0):
+		if operator_id_combo in mapping.keys():
+			operator_id = mapping[operator_id_combo]
+			for call in all_calls_with_members:
+				if(int(call[3]) == operator_id):
+					all_calls_filtered.append(call)
+	else:
+		all_calls_filtered = all_calls_with_members
+
+	return (all_calls_filtered if len(all_calls_filtered)>0 else [[]])
 
 
 """ 
@@ -271,26 +282,26 @@ def get_all_id_of_table(table = 'calls', asc = True):
 	return all_ids_of_table
 
 def get_last_id_of_table(table = 'calls'):
-	return max(get_all_id_of_table(table))
+	return (max(get_all_id_of_table(table)) if len(get_all_id_of_table(table)) != 0 else 0)
 
 # Test 	
-"""
-add_operator(1, "Bourgin", "Lionnel", "15/03/1998", "10/12/2019")
-add_operator(2, "Etienne", "Léo", "12/03/1998", "20/12/2019")
 
-add_call(1, "12:00:01", "0410121314", "12m", 1, "Appel SAV")
-add_call(2, "12:00:59", "0410121315", "15m", 2, "Appel SAV")
-add_call(3, "12:00:59", "0410121315", "14m", -1, "Appel SAV")
-add_call(4, "12:00:59", "0410121315", "19m", -1, "Appel SAV")
+TEST = False
+if(TEST):
+	print("Adding operators")
+	add_operator("Bourgin", "Lionnel", "15/03/1978", "10/12/2019")
+	add_operator("Etienne", "Léo", "12/03/1993", "20/12/2020")
+	add_operator("Rene", "Melville", "02/04/1953", "20/04/2004")
 
-set_call_state(call_state_list[2], 1)
-set_call_state(call_state_list[3], 2)
-set_call_state(call_state_list[0], 3)
-set_call_state(call_state_list[0], 4)
+	print("Adding operators")
+	add_call("12:00:01", "0410121314", "12m", 1, 0, "Appel SAV")
+	add_call("18:30:34", "0685121311", "03:00", 2, 0,"Appel SAV")
+	add_call("20:41:56", "0710126515", "10:50", 3, 0,"Appel SAV")
+	add_call("09:11:00", "0110621389", "23:11", 1, 0,"Appel SAV")
+	add_call("12:40:10", "0212671329", "00:40", 1, 0, "Rdv Client")
 
-change_call_state(call_state_list[0], 1)
-change_call_state(call_state_list[0], 2)
-change_call_state(call_state_list[1], 3)
-"""
-get_all_calls()
-#print(get_all_calls())
+	print("Setting calls state")
+	set_call_state("finished", 1)
+	set_call_state("unaffected", 2)
+	set_call_state("ignored", 3)
+	set_call_state("inprogress", 4)
