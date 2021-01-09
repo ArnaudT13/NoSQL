@@ -21,7 +21,9 @@ company_label = "COMPANY"
 user_label = "USER"
 
 # Neo4j relations
-work_for_relation = "WORK_FOR"
+work_for_relation = "HAVE_WORKED_FOR"
+work_with_relation = "HAVE_WORKED_WITH"
+knows_relation = "KNOWS"
 
 # Liste de compétences
 skills_list = ["Active listening", "Communication", "Computer skills", "Customer service", "Interpersonal skills", "Leadership",
@@ -39,6 +41,9 @@ def main():
 		orange1 = create_company(graphDB_Session, "Orange", "Operateur", "Société de communication", 20000)
 		orange2 = create_company(graphDB_Session, "Orange", "Informatique", "Société de conseil et services en informatique", 10000)
 
+		# Création d'un index sur le nom de l'entreprise
+		createIndex(graphDB_Session, company_label, 'name')
+
 		# On cherche une entreprise par nom
 		comp = searchCompanyByName(graphDB_Session, "Orange")
 		displayCompanyObject(comp)
@@ -47,6 +52,10 @@ def main():
 		u_etienne_thomas = create_user(graphDB_Session, "Etienne", "Thomas", "55 ans, marié, 3 enfants", [skills_list[5], skills_list[6], skills_list[7]])
 		u_baumet_richard = create_user(graphDB_Session, "Baumet", "Richard", "35 ans, marié, 2 enfants", [skills_list[0], skills_list[1], skills_list[2]])
 		u_dominique_richard = create_user(graphDB_Session, "Dominique", "Richard", "30 ans", [skills_list[4], skills_list[7], skills_list[8]])
+
+		# Création d'un index sur le nom ou prénom d'un utilisateur 
+		createIndex(graphDB_Session, user_label, 'lastname')
+		createIndex(graphDB_Session, user_label, 'firstname')
 
 		# On cherches les utilisateurs par nom ou prénom ou nom, prénom
 		print("1. Recherche par nom : ")
@@ -65,6 +74,16 @@ def main():
 		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, orange2, [date(2010, 10, 2), date(2020, 12, 2)], "Développeur")
 		createUserCompanyWorkForRelation(graphDB_Session, u_dominique_richard, orange1, [date(2019, 1, 2), date.today()], "Ingénieur RF")
 
+		# On crée les relation entre utilisateurs
+		# Work with
+		createUserUserWorkWithRelation(graphDB_Session, u_etienne_thomas, u_baumet_richard)
+
+		# Knows
+		createUserUserKnowsRelation(graphDB_Session, u_dominique_richard, u_etienne_thomas)
+		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_dominique_richard)
+		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
+		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_baumet_richard)
+
 
 
 ####################### Common ########################
@@ -74,6 +93,16 @@ def deleteAll(graphDB_Session):
 	cql_search = 'MATCH (n) \
 				  DETACH DELETE n'
 	graphDB_Session.run(cql_search)
+
+
+def createIndex(graphDB_Session, label, property):
+	cql_create_idx = 'CREATE INDEX ON :' + label + '(' + property + ')'
+	try:
+		graphDB_Session.run(cql_create_idx)
+		print("Création de l'index: label --> " + label + " property --> " + property)
+	except:
+		print("L'index existe déjà : aucune modification")
+	
 
 #######################################################
 
@@ -177,13 +206,45 @@ def createUserCompanyWorkForRelation(graphDB_Session, user_node, company_node, f
 	company_node_id = company_node[0][0].id
 
 	# On crée la requête
-	cql_create_rel = 'MATCH (comp:COMPANY) WHERE id(comp)=$company_node_id \
-					  MATCH (u:USER) WHERE id(u)=$user_node_id \
+	cql_create_rel = 'MATCH (comp:' + company_label + ') WHERE id(comp)=$company_node_id \
+					  MATCH (u:' + user_label + ') WHERE id(u)=$user_node_id \
 					  CREATE (u)-[r:' + work_for_relation + ' {fromTo: $from_to_dates, job: $job}]->(comp) \
 					  RETURN r'
 
 	# On exécute la requête
 	graphDB_Session.run(cql_create_rel, user_node_id=user_node_id, company_node_id=company_node_id, from_to_dates=from_to_dates, job=job)
+
+#######################################################
+
+
+
+############### Relation User User #################
+
+# Fonction générale permettant de créer une relation entre deux utilisateurs en fonction du type de relation transmis en paramètre
+def createUserUserRelation(graphDB_Session, user_node1, user_node2, relation):
+	# On récupère les id des nodes entreprise et utilisateur
+	user_node_id1 = user_node1[0][0].id
+	user_node_id2 = user_node2[0][0].id
+
+	# On crée la requête
+	cql_create_rel = 'MATCH (u1:' + user_label + ') WHERE id(u1)=$user_node_id1 \
+					  MATCH (u2:' + user_label + ') WHERE id(u2)=$user_node_id2 \
+					  CREATE (u1)-[r:' + relation + ']->(u2) \
+					  RETURN r'
+
+	# On exécute la requête
+	graphDB_Session.run(cql_create_rel, user_node_id1=user_node_id1, user_node_id2=user_node_id2)
+
+
+# Creation de la relation "A travaillé avec" entre deux utilisateurs
+def createUserUserWorkWithRelation(graphDB_Session, user_node1, user_node2):
+	createUserUserRelation(graphDB_Session, user_node1, user_node2, work_with_relation)
+
+
+# Creation de la relation "Connait" entre deux utilisateurs
+def createUserUserKnowsRelation(graphDB_Session, user_node1, user_node2):
+	createUserUserRelation(graphDB_Session, user_node1, user_node2, knows_relation)
+
 
 #######################################################
 
