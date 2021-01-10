@@ -60,11 +60,11 @@ def main():
 		displayCompanyObject(comp)
 
 		# On crée les utilisateurs
-		u_etienne_thomas = create_user(graphDB_Session, "Etienne", "Thomas", "55 ans, marié, 3 enfants", [skills_list[5], skills_list[6], skills_list[7]])
-		u_baumet_richard = create_user(graphDB_Session, "Baumet", "Richard", "35 ans, marié, 2 enfants", [skills_list[0], skills_list[1], skills_list[2]])
-		u_dominique_richard = create_user(graphDB_Session, "Dominique", "Richard", "30 ans", [skills_list[4], skills_list[7], skills_list[8]])
-		u_marie_estelle = create_user(graphDB_Session, "Marie", "Estelle", "40 ans", [skills_list[0], skills_list[1], skills_list[2], skills_list[5], skills_list[6], skills_list[7]])
-		u_fayet_cedric = create_user(graphDB_Session, "Fayet", "Cédric", "23 ans", [skills_list[0], skills_list[2], skills_list[7]])
+		u_etienne_thomas = create_user(graphDB_Session, "Etienne", "Thomas", "Manager, 55 ans, marié, 3 enfants", [skills_list[5], skills_list[6], skills_list[7]])
+		u_baumet_richard = create_user(graphDB_Session, "Baumet", "Richard", "Scrum master, 35 ans, marié, 2 enfants", [skills_list[0], skills_list[1], skills_list[2]])
+		u_dominique_richard = create_user(graphDB_Session, "Dominique", "Richard", "Ingénieur RF, 30 ans", [skills_list[4], skills_list[7], skills_list[8]])
+		u_marie_estelle = create_user(graphDB_Session, "Marie", "Estelle", "Ingénieur systèmes, 40 ans", [skills_list[0], skills_list[1], skills_list[2], skills_list[5], skills_list[6], skills_list[7]])
+		u_fayet_cedric = create_user(graphDB_Session, "Fayet", "Cédric", "Développeur, 23 ans", [skills_list[0], skills_list[2], skills_list[7]])
 
 		# On crée un index sur le nom ou prénom d'un utilisateur 
 		createIndex(graphDB_Session, user_label, 'lastname')
@@ -84,14 +84,14 @@ def main():
 		displayUserObject(user3)
 
 		# On crée les relations entre utilisateurs et entreprises
-		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, peugeot, [date(2000, 10, 15), date(2014, 7, 9)], "Manager")
-		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, orange2, [date(2014, 9, 29), date.today()], "Manager senior")
-		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, orange2, [date(2010, 10, 2), date(2020, 12, 2)], "Développeur")
-		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, sopra_steria, [date(2010, 10, 25), date.today()], "Scrum master")
-		createUserCompanyWorkForRelation(graphDB_Session, u_dominique_richard, orange1, [date(2019, 1, 2), date.today()], "Ingénieur RF")
-		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, orange2, [date(2000, 1, 2), date(2014, 1, 2)], "Ingénieur systèmes")
-		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, sopra_steria, [date(2014, 1, 2), date.today()], "Ingénieur systèmes")
-		createUserCompanyWorkForRelation(graphDB_Session, u_fayet_cedric, orange2, [date(2020, 9, 20), date.today()], "Développeur")
+		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, peugeot, [date(2000, 10, 15), date(2014, 7, 9)], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, orange2, [date(2014, 9, 29), date.today()], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, orange2, [date(2010, 10, 2), date(2020, 12, 2)], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, sopra_steria, [date(2010, 10, 25), date.today()], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_dominique_richard, orange1, [date(2019, 1, 2), date.today()], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, orange2, [date(2000, 1, 2), date(2014, 1, 2)], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, sopra_steria, [date(2014, 1, 2), date.today()], "Salarié")
+		createUserCompanyWorkForRelation(graphDB_Session, u_fayet_cedric, orange2, [date(2020, 9, 20), date.today()], "Salarié")
 
 		# On crée les relation entre utilisateurs
 		# Work with
