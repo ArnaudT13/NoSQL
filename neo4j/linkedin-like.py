@@ -18,8 +18,8 @@ company_label = "COMPANY"
 user_label = "USER"
 
 # Neo4j relations
-work_for_relation = "HAVE_WORKED_FOR"
-work_with_relation = "HAVE_WORKED_WITH"
+work_for_relation = "HAS_WORKED_FOR"
+work_with_relation = "HAS_WORKED_WITH"
 knows_relation = "KNOWS"
 
 # Liste de compétences
