@@ -1,9 +1,9 @@
 #!/usr/bin/python3.7
 
 # Création user
-#CREATE USER tpuser SET PASSWORD "tpuser" CHANGE NOT REQUIRED;
-#MATCH(n) RETURN(n)
-#pip3 install neo4j
+# CREATE USER tpuser SET PASSWORD "tpuser" CHANGE NOT REQUIRED;
+# MATCH(n) RETURN(n)
+# pip3 install neo4j
 
 from neo4j import GraphDatabase
 from datetime import date
@@ -12,9 +12,6 @@ from datetime import date
 uri = 'neo4j://localhost:7687'
 username = "tpuser"
 password = "tpuser"
-
-# Création de la connexion à la base neo4j
-driver = GraphDatabase.driver(uri, auth=(username, password), max_connection_lifetime=10)
 
 # Neo4j labels
 company_label = "COMPANY"
@@ -31,6 +28,17 @@ skills_list = ["Active listening", "Communication", "Computer skills", "Customer
 
 
 def main():
+
+	# Driver de la base neo4j
+	driver = None
+
+	# Création de la connexion à la base neo4j
+	try:
+		driver = GraphDatabase.driver(uri, auth=(username, password), max_connection_lifetime=10)
+	except:
+		print("Echec de connexion à la base neo4j")
+		return
+
 	# On crée la session neo4j
 	with driver.session() as graphDB_Session:
 		# On supprime tous les anciens noeuds
@@ -42,7 +50,7 @@ def main():
 		orange2 = create_company(graphDB_Session, "Orange", "Informatique", "Société de conseil et services en informatique", 10000)
 		sopra_steria = create_company(graphDB_Session, "Sopra Steria", "Informatique", "Société de conseil et services en informatique", 5000)
 
-		# Création d'un index sur le nom de l'entreprise
+		# On crée un index sur le nom de l'entreprise
 		createIndex(graphDB_Session, company_label, 'name')
 		print("")
 
@@ -55,15 +63,15 @@ def main():
 		u_etienne_thomas = create_user(graphDB_Session, "Etienne", "Thomas", "55 ans, marié, 3 enfants", [skills_list[5], skills_list[6], skills_list[7]])
 		u_baumet_richard = create_user(graphDB_Session, "Baumet", "Richard", "35 ans, marié, 2 enfants", [skills_list[0], skills_list[1], skills_list[2]])
 		u_dominique_richard = create_user(graphDB_Session, "Dominique", "Richard", "30 ans", [skills_list[4], skills_list[7], skills_list[8]])
-		u_jobs_steve = create_user(graphDB_Session, "Jobs", "Steve", "40 ans", [skills_list[0], skills_list[1], skills_list[2], skills_list[5], skills_list[6], skills_list[7]])
+		u_marie_estelle = create_user(graphDB_Session, "Marie", "Estelle", "40 ans", [skills_list[0], skills_list[1], skills_list[2], skills_list[5], skills_list[6], skills_list[7]])
 		u_fayet_cedric = create_user(graphDB_Session, "Fayet", "Cédric", "23 ans", [skills_list[0], skills_list[2], skills_list[7]])
 
-		# Création d'un index sur le nom ou prénom d'un utilisateur 
+		# On crée un index sur le nom ou prénom d'un utilisateur 
 		createIndex(graphDB_Session, user_label, 'lastname')
 		createIndex(graphDB_Session, user_label, 'firstname')
 		print("")
 
-		# On cherches les utilisateurs par nom ou prénom ou nom, prénom
+		# On cherche les utilisateurs par nom ou prénom ou nom, prénom
 		print("--> Recherche des utilisateurs")
 		print("1. Recherche par nom 'Etienne': ")
 		user1 = searchUserByLastname(graphDB_Session, "Etienne")
@@ -75,14 +83,14 @@ def main():
 		user3 = searchUserByLastnameAndFirstname(graphDB_Session, "Dominique", "Richard")
 		displayUserObject(user3)
 
-		# On crée les relations entre utilisateurs et entreprise
+		# On crée les relations entre utilisateurs et entreprises
 		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, peugeot, [date(2000, 10, 15), date(2014, 7, 9)], "Manager")
 		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, orange2, [date(2014, 9, 29), date.today()], "Manager senior")
 		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, orange2, [date(2010, 10, 2), date(2020, 12, 2)], "Développeur")
 		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, sopra_steria, [date(2010, 10, 25), date.today()], "Scrum master")
 		createUserCompanyWorkForRelation(graphDB_Session, u_dominique_richard, orange1, [date(2019, 1, 2), date.today()], "Ingénieur RF")
-		createUserCompanyWorkForRelation(graphDB_Session, u_jobs_steve, orange2, [date(2000, 1, 2), date(2014, 1, 2)], "Ingénieur systèmes")
-		createUserCompanyWorkForRelation(graphDB_Session, u_jobs_steve, sopra_steria, [date(2014, 1, 2), date.today()], "Ingénieur systèmes")
+		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, orange2, [date(2000, 1, 2), date(2014, 1, 2)], "Ingénieur systèmes")
+		createUserCompanyWorkForRelation(graphDB_Session, u_marie_estelle, sopra_steria, [date(2014, 1, 2), date.today()], "Ingénieur systèmes")
 		createUserCompanyWorkForRelation(graphDB_Session, u_fayet_cedric, orange2, [date(2020, 9, 20), date.today()], "Développeur")
 
 		# On crée les relation entre utilisateurs
@@ -91,18 +99,18 @@ def main():
 		createUserUserWorkWithRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
 		createUserUserWorkWithRelation(graphDB_Session, u_fayet_cedric, u_etienne_thomas)
 		createUserUserWorkWithRelation(graphDB_Session, u_etienne_thomas, u_fayet_cedric)
-		createUserUserWorkWithRelation(graphDB_Session, u_baumet_richard, u_jobs_steve)
-		createUserUserWorkWithRelation(graphDB_Session, u_jobs_steve, u_baumet_richard)
+		createUserUserWorkWithRelation(graphDB_Session, u_baumet_richard, u_marie_estelle)
+		createUserUserWorkWithRelation(graphDB_Session, u_marie_estelle, u_baumet_richard)
 
 		# Knows
 		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_baumet_richard)
 		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
 		createUserUserKnowsRelation(graphDB_Session, u_fayet_cedric, u_etienne_thomas)
 		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_fayet_cedric)
-		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_jobs_steve)
-		createUserUserKnowsRelation(graphDB_Session, u_jobs_steve, u_baumet_richard)
-		createUserUserKnowsRelation(graphDB_Session, u_jobs_steve, u_fayet_cedric)
-		createUserUserKnowsRelation(graphDB_Session, u_fayet_cedric, u_jobs_steve)
+		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_marie_estelle)
+		createUserUserKnowsRelation(graphDB_Session, u_marie_estelle, u_baumet_richard)
+		createUserUserKnowsRelation(graphDB_Session, u_marie_estelle, u_fayet_cedric)
+		createUserUserKnowsRelation(graphDB_Session, u_fayet_cedric, u_marie_estelle)
 		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_dominique_richard)
 		createUserUserKnowsRelation(graphDB_Session, u_dominique_richard, u_etienne_thomas)
 
@@ -121,9 +129,12 @@ def main():
 		displayUserObject(user_match)
 
 
+	# Fermeture du driver
+	driver.close()
 
 
-####################### Common ########################
+
+####################### Commun ########################
 
 # Supprimer tous les noeuds de la base neo4j
 def deleteAll(graphDB_Session):
@@ -132,6 +143,7 @@ def deleteAll(graphDB_Session):
 	graphDB_Session.run(cql_search)
 
 
+# On crée un index dans la base neo4j sur la propriété d'un label, tous deux passés en paramètres 
 def createIndex(graphDB_Session, label, property):
 	cql_create_idx = 'CREATE INDEX ON :' + label + '(' + property + ')'
 	try:
@@ -140,16 +152,14 @@ def createIndex(graphDB_Session, label, property):
 	except:
 		print("L'index existe déjà : aucune modification")
 	
-
 #######################################################
-
 
 
 
 
 ####################### Company #######################
 
- # Création d'une entreprise dans la base neo4j
+ # Création d'une entreprise dans la base neo4j (propriétés passées en paramètres)
 def create_company(graphDB_Session, name, business_line, description, size):
 	cql_create = 'CREATE (comp:' + company_label + ' {name: $name, businessLine: $business_line, description: $description, size: $size}) \
 				  RETURN comp'
@@ -166,7 +176,7 @@ def searchCompanyByName(graphDB_Session, name):
 	return comp.values()
 
 
-# Permet d'afficher une ou plusieurs entreprises
+# Permet d'afficher un ou plusieurs noeuds company
 def displayCompanyObject(companies):
 	count=1
 	for comp in companies:
@@ -183,10 +193,9 @@ def displayCompanyObject(companies):
 
 
 
-
 ######################## User #########################
 
-# Création d'un utilisateur dans la base neo4j
+# Création d'un utilisateur dans la base neo4j (propriétés passées en paramètres)
 def create_user(graphDB_Session, lastname, firstname, description, skills):
 	cql_create = 'CREATE (u:' + user_label + ' {lastname: $lastname, firstname: $firstname, description: $description, skills: $skills}) \
 				  RETURN u'
@@ -234,9 +243,11 @@ def displayUserObject(users):
 #######################################################
 
 
+
+
 ############### Relation User Company #################
 
-# Creation de la relation "A travaillé pour" entre une entreprise et un utilisateur
+# Creation de la relation "A travaillé pour" entre un noeud company et un noeud user (noeuds et propriétés passés en paramètres)
 def createUserCompanyWorkForRelation(graphDB_Session, user_node, company_node, from_to_dates, job):
 	# On récupère les id des nodes entreprise et utilisateur
 	user_node_id = user_node[0][0].id
@@ -255,11 +266,12 @@ def createUserCompanyWorkForRelation(graphDB_Session, user_node, company_node, f
 
 
 
+
 ################# Relation User User ##################
 
-# Fonction générale permettant de créer une relation entre deux utilisateurs en fonction du type de relation transmis en paramètre
+# Fonction générale permettant de créer une relation entre deux utilisateurs (noeuds et type de relation transmis en paramètres)
 def createUserUserRelation(graphDB_Session, user_node1, user_node2, relation):
-	# On récupère les id des nodes entreprise et utilisateur
+	# On récupère les id des nodes utilisateurs
 	user_node_id1 = user_node1[0][0].id
 	user_node_id2 = user_node2[0][0].id
 
@@ -272,12 +284,12 @@ def createUserUserRelation(graphDB_Session, user_node1, user_node2, relation):
 	graphDB_Session.run(cql_create_rel, user_node_id1=user_node_id1, user_node_id2=user_node_id2)
 
 
-# Creation de la relation "A travaillé avec" entre deux utilisateurs
+# Creation de la relation "A travaillé avec" entre deux utilisateurs (noeuds transmis en paramètres)
 def createUserUserWorkWithRelation(graphDB_Session, user_node1, user_node2):
 	createUserUserRelation(graphDB_Session, user_node1, user_node2, work_with_relation)
 
 
-# Creation de la relation "Connait" entre deux utilisateurs
+# Creation de la relation "Connait" entre deux utilisateurs (noeuds transmis en paramètres)
 def createUserUserKnowsRelation(graphDB_Session, user_node1, user_node2):
 	createUserUserRelation(graphDB_Session, user_node1, user_node2, knows_relation)
 
@@ -286,10 +298,9 @@ def createUserUserKnowsRelation(graphDB_Session, user_node1, user_node2):
 
 
 
-
 ################# Requêtes complexes ##################
 
-# Permet d'obtenir les utilisateurs ayant travaillé en même temps qu'un utilisateur et dans une entreprise donnés en paramètres
+# Permet d'obtenir les utilisateurs ayant travaillé en même temps qu'un utilisateur dans une entreprise (noeuds user et company passés en paramètres)
 def getUsersWorkWithSpecificUserInSpecificCompany(graphDB_Session, user_node, company_node):
 	# On récupère les id des nodes entreprise et utilisateur
 	user_node_id = user_node[0][0].id
@@ -316,13 +327,12 @@ def getUsersKnownByKnownUsers(graphDB_Session, user_node):
 				  MATCH(u2)-[r2:' + knows_relation + ']->(u3:' + user_label + ') \
 				  WHERE id(u1) = $user_node_id AND id(u3) <> $user_node_id \
 				  RETURN DISTINCT u3'
-				  
+
 	u3 = graphDB_Session.run(cql_search, user_node_id=user_node_id)
 
 	return u3.values()
 
 #######################################################
-main()
 
-# Fermeture du driver
-driver.close()
+
+main()
