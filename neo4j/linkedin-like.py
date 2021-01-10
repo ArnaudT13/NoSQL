@@ -40,11 +40,14 @@ def main():
 		peugeot = create_company(graphDB_Session, "Peugeot", "Automobile", "Constructeur automobile", 100000)
 		orange1 = create_company(graphDB_Session, "Orange", "Operateur", "Société de communication", 20000)
 		orange2 = create_company(graphDB_Session, "Orange", "Informatique", "Société de conseil et services en informatique", 10000)
+		sopra_steria = create_company(graphDB_Session, "Sopra Steria", "Informatique", "Société de conseil et services en informatique", 5000)
 
 		# Création d'un index sur le nom de l'entreprise
 		createIndex(graphDB_Session, company_label, 'name')
+		print("")
 
 		# On cherche une entreprise par nom
+		print("--> Recherche des entreprises nommée Orange")
 		comp = searchCompanyByName(graphDB_Session, "Orange")
 		displayCompanyObject(comp)
 
@@ -52,19 +55,23 @@ def main():
 		u_etienne_thomas = create_user(graphDB_Session, "Etienne", "Thomas", "55 ans, marié, 3 enfants", [skills_list[5], skills_list[6], skills_list[7]])
 		u_baumet_richard = create_user(graphDB_Session, "Baumet", "Richard", "35 ans, marié, 2 enfants", [skills_list[0], skills_list[1], skills_list[2]])
 		u_dominique_richard = create_user(graphDB_Session, "Dominique", "Richard", "30 ans", [skills_list[4], skills_list[7], skills_list[8]])
+		u_jobs_steve = create_user(graphDB_Session, "Jobs", "Steve", "40 ans", [skills_list[0], skills_list[1], skills_list[2], skills_list[5], skills_list[6], skills_list[7]])
+		u_fayet_cedric = create_user(graphDB_Session, "Fayet", "Cédric", "23 ans", [skills_list[0], skills_list[2], skills_list[7]])
 
 		# Création d'un index sur le nom ou prénom d'un utilisateur 
 		createIndex(graphDB_Session, user_label, 'lastname')
 		createIndex(graphDB_Session, user_label, 'firstname')
+		print("")
 
 		# On cherches les utilisateurs par nom ou prénom ou nom, prénom
-		print("1. Recherche par nom : ")
+		print("--> Recherche des utilisateurs")
+		print("1. Recherche par nom 'Etienne': ")
 		user1 = searchUserByLastname(graphDB_Session, "Etienne")
 		displayUserObject(user1)
-		print("2. Recherche par prénom : ")
+		print("2. Recherche par prénom 'Richard': ")
 		user2 = searchUserByFirstname(graphDB_Session, "Richard")
 		displayUserObject(user2)
-		print("3. Recherche par nom et prénom : ")
+		print("3. Recherche par nom 'Dominique' et prénom 'Richard': ")
 		user3 = searchUserByLastnameAndFirstname(graphDB_Session, "Dominique", "Richard")
 		displayUserObject(user3)
 
@@ -72,17 +79,47 @@ def main():
 		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, peugeot, [date(2000, 10, 15), date(2014, 7, 9)], "Manager")
 		createUserCompanyWorkForRelation(graphDB_Session, u_etienne_thomas, orange2, [date(2014, 9, 29), date.today()], "Manager senior")
 		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, orange2, [date(2010, 10, 2), date(2020, 12, 2)], "Développeur")
+		createUserCompanyWorkForRelation(graphDB_Session, u_baumet_richard, sopra_steria, [date(2010, 10, 25), date.today()], "Scrum master")
 		createUserCompanyWorkForRelation(graphDB_Session, u_dominique_richard, orange1, [date(2019, 1, 2), date.today()], "Ingénieur RF")
+		createUserCompanyWorkForRelation(graphDB_Session, u_jobs_steve, orange2, [date(2000, 1, 2), date(2014, 1, 2)], "Ingénieur systèmes")
+		createUserCompanyWorkForRelation(graphDB_Session, u_jobs_steve, sopra_steria, [date(2014, 1, 2), date.today()], "Ingénieur systèmes")
+		createUserCompanyWorkForRelation(graphDB_Session, u_fayet_cedric, orange2, [date(2020, 9, 20), date.today()], "Développeur")
 
 		# On crée les relation entre utilisateurs
 		# Work with
 		createUserUserWorkWithRelation(graphDB_Session, u_etienne_thomas, u_baumet_richard)
+		createUserUserWorkWithRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
+		createUserUserWorkWithRelation(graphDB_Session, u_fayet_cedric, u_etienne_thomas)
+		createUserUserWorkWithRelation(graphDB_Session, u_etienne_thomas, u_fayet_cedric)
+		createUserUserWorkWithRelation(graphDB_Session, u_baumet_richard, u_jobs_steve)
+		createUserUserWorkWithRelation(graphDB_Session, u_jobs_steve, u_baumet_richard)
 
 		# Knows
-		createUserUserKnowsRelation(graphDB_Session, u_dominique_richard, u_etienne_thomas)
-		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_dominique_richard)
-		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
 		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_baumet_richard)
+		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_etienne_thomas)
+		createUserUserKnowsRelation(graphDB_Session, u_fayet_cedric, u_etienne_thomas)
+		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_fayet_cedric)
+		createUserUserKnowsRelation(graphDB_Session, u_baumet_richard, u_jobs_steve)
+		createUserUserKnowsRelation(graphDB_Session, u_jobs_steve, u_baumet_richard)
+		createUserUserKnowsRelation(graphDB_Session, u_jobs_steve, u_fayet_cedric)
+		createUserUserKnowsRelation(graphDB_Session, u_fayet_cedric, u_jobs_steve)
+		createUserUserKnowsRelation(graphDB_Session, u_etienne_thomas, u_dominique_richard)
+		createUserUserKnowsRelation(graphDB_Session, u_dominique_richard, u_etienne_thomas)
+
+		# Requêtes complexes
+		print("--> Requêtes complexes")
+		print("- Utilisateur(s) ayant travaillé en même temps que Etienne Thomas à Orange: ")
+		user_match = getUsersWorkWithSpecificUserInSpecificCompany(graphDB_Session, u_etienne_thomas, orange2)
+		displayUserObject(user_match)
+
+		print("- Utilisateur(s) connus par les connaissances de Baumet Richard: ")
+		user_match = getUsersKnownByKnownUsers(graphDB_Session, u_baumet_richard)
+		displayUserObject(user_match)
+
+		print("- Utilisateur(s) connus par les connaissances de Dominique Richard: ")
+		user_match = getUsersKnownByKnownUsers(graphDB_Session, u_dominique_richard)
+		displayUserObject(user_match)
+
 
 
 
@@ -218,7 +255,7 @@ def createUserCompanyWorkForRelation(graphDB_Session, user_node, company_node, f
 
 
 
-############### Relation User User #################
+################# Relation User User ##################
 
 # Fonction générale permettant de créer une relation entre deux utilisateurs en fonction du type de relation transmis en paramètre
 def createUserUserRelation(graphDB_Session, user_node1, user_node2, relation):
@@ -229,8 +266,7 @@ def createUserUserRelation(graphDB_Session, user_node1, user_node2, relation):
 	# On crée la requête
 	cql_create_rel = 'MATCH (u1:' + user_label + ') WHERE id(u1)=$user_node_id1 \
 					  MATCH (u2:' + user_label + ') WHERE id(u2)=$user_node_id2 \
-					  CREATE (u1)-[r:' + relation + ']->(u2) \
-					  RETURN r'
+					  CREATE (u1)-[r:' + relation + ']->(u2)'
 
 	# On exécute la requête
 	graphDB_Session.run(cql_create_rel, user_node_id1=user_node_id1, user_node_id2=user_node_id2)
@@ -245,9 +281,47 @@ def createUserUserWorkWithRelation(graphDB_Session, user_node1, user_node2):
 def createUserUserKnowsRelation(graphDB_Session, user_node1, user_node2):
 	createUserUserRelation(graphDB_Session, user_node1, user_node2, knows_relation)
 
-
 #######################################################
 
+
+
+
+
+################# Requêtes complexes ##################
+
+# Permet d'obtenir les utilisateurs ayant travaillé en même temps qu'un utilisateur et dans une entreprise donnés en paramètres
+def getUsersWorkWithSpecificUserInSpecificCompany(graphDB_Session, user_node, company_node):
+	# On récupère les id des nodes entreprise et utilisateur
+	user_node_id = user_node[0][0].id
+	company_node_id = company_node[0][0].id
+
+	# On crée la requête
+	cql_search = 'MATCH(u1:' + user_label + ')-[r1:' + work_for_relation + ']->(comp:' + company_label + ') \
+				  MATCH(un:' + user_label + ')-[rn:' + work_for_relation + ']->(comp:' + company_label + ') \
+				  WHERE id(comp) = $company_node_id  AND id(u1) = $user_node_id AND $user_node_id <> id(un) AND NOT(r1.fromTo[0] > rn.fromTo[1]) AND NOT(rn.fromTo[0] > r1.fromTo[1]) \
+				  RETURN un'
+
+	un = graphDB_Session.run(cql_search, user_node_id=user_node_id , company_node_id=company_node_id)
+
+	return un.values()
+
+
+# Permet d'obtenir les utilisateurs connus par les connaissances d'un utilisateur donné en paramètre
+def getUsersKnownByKnownUsers(graphDB_Session, user_node):
+	# On récupère l'id du node user
+	user_node_id = user_node[0][0].id
+
+	# On crée la requête
+	cql_search = 'MATCH(u1:' + user_label + ')-[r1:' + knows_relation + ']->(u2:' + user_label + ') \
+				  MATCH(u2)-[r2:' + knows_relation + ']->(u3:' + user_label + ') \
+				  WHERE id(u1) = $user_node_id AND id(u3) <> $user_node_id \
+				  RETURN DISTINCT u3'
+				  
+	u3 = graphDB_Session.run(cql_search, user_node_id=user_node_id)
+
+	return u3.values()
+
+#######################################################
 main()
 
 # Fermeture du driver
