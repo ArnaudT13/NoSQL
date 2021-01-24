@@ -2,10 +2,9 @@ package cassandra;
 
 import java.util.List;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.TokenAwarePolicy;
 
 public class WeatherStation {
 
@@ -23,6 +22,9 @@ public class WeatherStation {
 		cluster = Cluster.builder()
 				.addContactPoint(ip)
 				.withPort(port)
+				.withProtocolVersion(ProtocolVersion.V4)
+				.withLoadBalancingPolicy(
+						new TokenAwarePolicy(DCAwareRoundRobinPolicy.builder().build()))
 				.build();
 
 		session = cluster.connect();
@@ -56,11 +58,24 @@ public class WeatherStation {
 	}
 
 	/**
+	 *
+	 * @param keyspaceName
+	 */
+	public void deleteKeyspace(String keyspaceName) {
+		StringBuilder sb = new StringBuilder("DROP KEYSPACE ").append(keyspaceName);
+
+		String query = sb.toString();
+		session.execute(query);
+	}
+	/**
 	 * Drop the whole given table
 	 *
 	 */
 	public void dropTable(String table) {
-		session.execute("DROP TABLE " + table);
+		StringBuilder sb = new StringBuilder("DROP KEYSPACE ").append(table);
+
+		String query = sb.toString();
+		session.execute(query);
 	}
 	/**
 	 * Create a weather table unit.
@@ -70,7 +85,7 @@ public class WeatherStation {
 		StringBuilder sb = new StringBuilder("CREATE TABLE IF NOT EXISTS ")
 				.append("weather")
 				.append("(")
-				.append("idWeatherUnit UUID PRIMARY KEY,")
+				.append("id timeuuid PRIMARY KEY,")
 				.append("idStation bigint,")
 				.append("longitude double,")
 				.append("latitude double, ")
@@ -97,7 +112,7 @@ public class WeatherStation {
 	 */
 	public void insertWeather(long idStation, double longitude, double latitude, long time, float temperature, float humidity, float pressure) {
 		StringBuilder sb = new StringBuilder("INSERT INTO weather")
-				.append("(idWeatherUnit, idStation, longitude, latitude, time, temperature, humidity, pressure)")
+				.append("(id, idStation, longitude, latitude, time, temperature, humidity, pressure)")
 				.append("VALUES (")
 				.append("now(), ") //Generate UUID
 				.append(idStation +", ")
@@ -121,7 +136,7 @@ public class WeatherStation {
 				.append("station")
 				.append("(")
 				.append("idStation bigint PRIMARY KEY,")
-				.append("stationDescription text")
+				.append("stationDescription varchar")
 				.append(");");
 
 		String query = sb.toString();
@@ -130,11 +145,11 @@ public class WeatherStation {
 
 	public void insertStation(long idStation, String stationDescription) {
 		StringBuilder sb = new StringBuilder("INSERT INTO station")
-				.append("(idStation, stationDescription)")
+				.append(" (idStation, stationDescription) ")
 				.append("VALUES (")
 				//.append("now(), ") //Generate UUID
 				.append(idStation +", ")
-				.append(stationDescription)
+				.append("'"+ stationDescription +"'")
 				.append(");");
 
 		String query = sb.toString();
@@ -158,11 +173,16 @@ public class WeatherStation {
 			for (Row row : rows) {
 				System.out.println(row.toString());
 			}
-		} finally {
-			if (cluster != null) cluster.close();
-		}
 
-		System.out.println(Utils.GREEN + "[INFO] " + Utils.RESET + "Done.");
+			if (rs.isExhausted()) {
+				System.out.println(Utils.GREEN + "[INFO] " + Utils.RESET + "Done.");
+			}else{
+				System.out.println(Utils.RED + "[INFO] " + Utils.RESET + "Failed.");
+			}
+
+		} finally {
+			if (cluster == null) cluster.close();
+		}
 	}
 
 	public static void main(String[] args) {
@@ -171,8 +191,10 @@ public class WeatherStation {
 
 		WeatherStation client = new WeatherStation();
 		client.connect("127.0.0.1", 9042);
-
 		session = client.getSession();
+
+		// Delete keyspace for demo
+		client.deleteKeyspace(keyspaceName);
 
 		// Create keyspace if it doesn't exist
 		client.createKeyspace(keyspaceName, "SimpleStrategy", 1);
@@ -180,17 +202,12 @@ public class WeatherStation {
 		// Connect to the keyspace created above
 		session = cluster.connect(keyspaceName);
 
-		// Drop tables table for demo
-		//client.dropTable("station");
-		client.dropTable("weather");
-
 		// Create Station table
-		//client.createStationTable();
+		client.createStationTable();
 
 		// Inserting stations
-		//client.insertStation(1, "Station Saint-Etienne");
-		//client.insertStation(2, "Station Lyon");
-
+		client.insertStation(1, "Station Saint-Etienne");
+		client.insertStation(2, "Station Lyon");
 
 		// Create weather table
 		client.createWeatherTable();
@@ -202,8 +219,9 @@ public class WeatherStation {
 		client.insertWeather(2, 6.53, 45.75, 1611492001, 6, 41, 834);
 
 		client.executeAndDisplayQuery("SELECT * FROM weather");
-		//client.executeAndDisplayQuery("SELECT * FROM station");
-		client.executeAndDisplayQuery("SELECT * FROM weather WHERE idStation = 2");
+		client.executeAndDisplayQuery("SELECT * FROM station");
+		client.executeAndDisplayQuery("SELECT * FROM weather WHERE idStation = 2 LIMIT 5 ALLOW FILTERING");
+		client.executeAndDisplayQuery("SELECT * FROM weather WHERE idStation = 0 LIMIT 5 ALLOW FILTERING");
 
 
 	}
