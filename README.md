@@ -3,16 +3,58 @@ Date de rendu : 18 janvier
 **Commenter le code réalisé !**
 
 ## 1. Redis
-### Objectifs:
-Simuler un **call center** --> simuler le stockage des données à instant donné.
 
-### Structures:
- - Appels
- - Opérateurs
- 
-### Exemples:
- - Quels sont les appels (suivant l'état) à un instant donné ?
- - Quels sont les opérateurs effectuant un appel à un instant donné ?
+### 1.1 Objectifs:
+
+Simulation d'un **call center** avec le stockage de données (appels) à instant donné et la gestion des opérateurs.
+
+### 1.2  Explications
+
+#### 1.2.1 Structure
+
+La manipulation des données de la base Redis est implémenté en **Python** . Nous proposons de plus une interface graphique, réalisée sous **Qt5**.
+
+Le projet Redis est composé de deux fichiers :
+
+- `call_center.py` qui représente toute la gestion de la base Redis, de la connection à la création d'appels et d'opérateurs.
+
+- `UI.py` qui compose l'interface graphique. **Ce fichier est du génie logiciel, il n'est pas très interessant de le regarder**
+
+#### 1.2.2 Utilisation
+
+Nous avons 3 onglets dans l'interface graphique : 
+
+- **Gestion des appels** 
+
+	<img src="https://i.ibb.co/hgZv8ZS/appels.jpg" alt="appels" style="zoom:67%;" />
+
+	Cette interface permet :
+
+	- La visualisation de tous les appels
+
+	- La création d'un appel avec la spécification d'une descrition, d'un numéro, d'une heure, d'une durée et la sélection du statut avec l'affectation de l'opérateur. La création d'un appel utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
+
+		Tous les champs doivent être inscrits avant d'ajouter un appel. Cependant, l'interface ne possède pas de sécurité qui vérifie le bon type de donnée.
+
+- **Gestion des opérateurs**
+
+	<img src="https://i.ibb.co/gyvwbKV/operateurs.jpg" alt="appels" style="zoom:67%;" />
+
+	Cette interface permet :
+
+	- La visualisation de tous les opérateurs
+
+	- La création d'un opérateur avec la spécification d'un prenom, d'un nom, d'une date de naissance , d'une date d'arrivée. La création d'un opérateur rend celui-ci disponible sur la page gestion des appels. La création utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
+
+		Tous les champs doivent être inscrits avant d'ajouter un opérateur. Cependant, l'interface ne possède pas de sécurité qui vérifie le bon type de donnée.
+
+- **Filtrage des opérateurs**
+
+	<img src="https://i.ibb.co/kH87Q21/filtre.jpg" alt="appels" style="zoom:67%;" />
+
+	Cette interface permet :
+
+	- La visualisation de tous les appels et le filtrage de ceux-ci. Il est possible de rechercher un appel suivant son était (fini, en cours, …) et suivant l'opérateur en charge.
  
  
 ## 2. Mongodb
