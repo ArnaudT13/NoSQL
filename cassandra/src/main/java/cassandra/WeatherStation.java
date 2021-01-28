@@ -176,6 +176,23 @@ public class WeatherStation {
 	}
 
 	/**
+	 * Delete values of a row represented by an iD into a given Table.
+	 *
+	 *
+	 * @param tableName targeted table
+	 */
+	public void deleteValue(String tableName, String id) {
+		StringBuilder sb = new StringBuilder("DELETE FROM ")
+				.append(tableName)
+				.append("WHERE id = ")
+				.append(id)
+				.append(" IF EXISTS;");
+
+		String query = sb.toString();
+		session.execute(query);
+	}
+
+	/**
 	 * Execute and display a given query.
 	 *
 	 * @param query to execute, i.e. "SELECT * FROM weather"
