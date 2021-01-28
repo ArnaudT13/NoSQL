@@ -55,7 +55,13 @@ Nous avons 3 onglets dans l'interface graphique :
 	Cette interface permet :
 
 	- La visualisation de tous les appels et le filtrage de ceux-ci. Il est possible de rechercher un appel suivant son était (fini, en cours, …) et suivant l'opérateur en charge.
- 
+	
+### 1.3 Lancement:
+
+- Installation et configuration de Redis
+- Créez un dossier `data` (ou autre selon vos préférénces) dans `redis-6.X.X` 
+- Déplacez-vous dans ce dossier `data` 
+- Lancer le service Redis avec `../src/redis-server`
  
 ## 2. Mongodb
 ### 2.1 Objectifs:
