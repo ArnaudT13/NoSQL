@@ -115,3 +115,54 @@ Les fonctions suivantes y sont décrites:
  - Création d'un utilisateur ainsi que son mot de passe dans la base (ici `tpuser` et `tpuser`)
  - Installation du module Python `neo4j` : `pip install neo4j`
  - Aller dans le dossier *neo4j* et lancer le script Python : `linkedin-like.py`
+ 
+ ## 4. Cassandra
+
+### 4.1 Objectif:
+
+Modéliser dans Cassandra des données issues de stations métérologiques
+
+### 4.2 Explications:
+
+Le Script de définition et manipulation des données de la base Cassandra est implémenté en Java et utilise la bibliothèque `Cassandra`.
+
+Les fonctions suivantes y sont décrites:
+
+- Création d'un client Cassandra pour la connexion à la base sous l'adresse locahost `127.0.0.1` et le port `9042` avec la méthode `connect(String ip, Integer port)`
+
+- Création d'un keyspace avec la méthode `createKeyspace(String keyspaceName, String replicationStrategy, int replicationFactor)`
+
+- Suppression d'un keyspace avec la méthode `deleteKeyspace(String keyspaceName)`
+
+- Création d'une table avec la méthode `createTable(String tableName)`
+
+	Ici, nous créons une table `weather` pour stockées nos données météo. Ces données sont réprsentées par un :
+
+	- `id` unique (correlé avec le temps par la fonction `timeuuid`)
+	- `idStation` qui permet d'identifier la station source de la donnée.
+	- `longitude/latitude` de la donnée météo
+	- `time` date et heure à laquelle la donnée a été capturée (timestamp en ms)
+	- `temperature/humidity/pressure` données météorologique
+
+	Pour le requetage des données, nous avons définie une clé primaire `PRIMARY KEY (idStation, time, id) )` unique avec `idStation` en clé de partition et `(time, id)` en clé de clustering
+
+- Création d'une table avec la méthode `deleteTable(String tableName)`
+
+- L'insertion de valeurs dans la table météo `insertValue(String tableName, ..., float pressure) `
+
+- Suppression d'une donnée météo suivant son id avec `deleteValue(String tableName, long id)`
+
+- Execution et affichage d'une requete avec `executeAndDisplayQuery()` qui permet :
+
+	- Affichage d'une table (exemple : `SELECT * FROM weather` )
+	- Affichage d'une table avec des conditions sur la station météo d'origine (exemple : `SELECT * FROM weather WHERE idStation = 1` )
+	- Affichage d'une table avec des conditions sur la station météo d'origine et sur un timestamp spécifique (exemple : `SELECT * FROM weather WHERE idStation = 1 AND time = 1611742249300` )
+	- Affichage d'une table avec des conditions sur la station météo d'origine et sur un intervalle de timestamp (exemple : `SELECT * FROM weather WHERE idStation = 2  AND time >'1611742249500' AND time <'1611742249800'` )
+
+### 4.3 Lancement:
+
+Nous avons utilisé un Docker pour lancer pour faciliment un service Cassandra
+
+- Installez Cassandra sous Docker avec `docker pull cassandra` et configurez l'adresse/port `localhost:9042`
+- Lancer le container Cassandra (le service sera actif automatiquement)
+- Importez le projet Java Maven sous un IDE (eclipse, intellij, ...) et executez le code dans `WeatherStation` 
