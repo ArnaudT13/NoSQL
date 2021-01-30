@@ -4,7 +4,7 @@ from PyQt5.Qt import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import call_center as cc
-
+import redis
 
 """ 
 Table model du tableview central
@@ -429,21 +429,28 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 if __name__ == "__main__" :
-    app = QtWidgets.QApplication( sys.argv )
 
-    array_of_all_calls = cc.get_all_calls()
+    try:
+            
+        app = QtWidgets.QApplication( sys.argv )
 
-    operator_list = cc.get_all_operators_names()
-    # Donne le bon idex de la base pour le combo. Les combobox sont contigues contrairement à la DB. Ainsi si l'on a les IDs 1, 2, 4, 5 
-    # pour les operators dans la DB, on a en combobox 1, 2, 3, 4 avec le bon mapping 
-    operator_mapping_combobox = {}
-    for index_combo, index_operator in enumerate(cc.get_all_id_of_table('operators')):
-        operator_mapping_combobox[index_combo] = index_operator
+        array_of_all_calls = cc.get_all_calls()
+
+        operator_list = cc.get_all_operators_names()
+        # Donne le bon idex de la base pour le combo. Les combobox sont contigues contrairement à la DB. Ainsi si l'on a les IDs 1, 2, 4, 5 
+        # pour les operators dans la DB, on a en combobox 1, 2, 3, 4 avec le bon mapping 
+        operator_mapping_combobox = {}
+        for index_combo, index_operator in enumerate(cc.get_all_id_of_table('operators')):
+            operator_mapping_combobox[index_combo] = index_operator
 
 
-    myWindow =MainWindow()
-    myWindow.show()
-    
+        myWindow =MainWindow()
+        myWindow.show()
+
+    except redis.exceptions.ConnectionError:
+        print(bcolors.WARNING + "UI.py : Avez-vous chargé les données dans redis ?" + bcolors.ENDC)
+	    #print(bcolors.WARNING + "Lancez le service Redis avec ../src/redis-server en vous placant au prealable dans un dossier de données" + bcolors.ENDC)
+
     #app.exec()
-    sys.exit( app.exec_() )
+    #sys.exit( app.exec_() )
 
