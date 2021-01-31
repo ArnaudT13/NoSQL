@@ -285,23 +285,48 @@ def get_last_id_of_table(table = 'calls'):
 	return (max(get_all_id_of_table(table)) if len(get_all_id_of_table(table)) != 0 else 0)
 
 # Test 	
+class bcolors:
+    HEADER    = '\033[95m'
+    OKBLUE    = '\033[94m'
+    OKCYAN    = '\033[96m'
+    OKGREEN   = '\033[92m'
+    WARNING   = '\033[93m'
+    FAIL      = '\033[91m'
+    ENDC      = '\033[0m'
+    BOLD      = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-TEST = False
+
+
+TEST = True
+
+
 if(TEST):
-	print("Adding operators")
-	add_operator("Bourgin", "Lionnel", "15/03/1978", "10/12/2019")
-	add_operator("Etienne", "Léo", "12/03/1993", "20/12/2020")
-	add_operator("Rene", "Melville", "02/04/1953", "20/04/2004")
+	print(bcolors.OKCYAN+ "Chargement des données dans la base Redis" + bcolors.ENDC) 
 
-	print("Adding operators")
-	add_call("12:00:01", "0410121314", "12m", 1, 0, "Appel SAV")
-	add_call("18:30:34", "0685121311", "03:00", 2, 0,"Appel SAV")
-	add_call("20:41:56", "0710126515", "10:50", 3, 0,"Appel SAV")
-	add_call("09:11:00", "0110621389", "23:11", 1, 0,"Appel SAV")
-	add_call("12:40:10", "0212671329", "00:40", 1, 0, "Rdv Client")
+	try:
 
-	print("Setting calls state")
-	set_call_state("finished", 1)
-	set_call_state("unaffected", 2)
-	set_call_state("ignored", 3)
-	set_call_state("inprogress", 4)
+		print("--> Adding operators")
+		add_operator("Bourgin", "Lionnel", "15/03/1978", "10/12/2019")
+		add_operator("Etienne", "Léo", "12/03/1993", "20/12/2020")
+		add_operator("Rene", "Melville", "02/04/1953", "20/04/2004")
+
+		print("--> Adding operators")
+		add_call("12:00:01", "0410121314", "12:54", 1, 0, "Appel SAV")
+		add_call("18:30:34", "0685121311", "03:00", 2, 0,"Appel SAV")
+		add_call("20:41:56", "0710126515", "10:50", 3, 0,"Appel SAV")
+		add_call("09:11:00", "0110621389", "23:11", 1, 0,"Appel SAV")
+		add_call("12:40:10", "0212671329", "00:40", 1, 0, "Rdv Client")
+
+		print("--> Setting calls state")
+		set_call_state("finished", 1)
+		set_call_state("unaffected", 2)
+		set_call_state("ignored", 3)
+		set_call_state("inprogress", 4)
+
+		print(bcolors.OKGREEN + "Chargement des données terminé. Vous pouvez lancer le script UI.py" + bcolors.ENDC) 
+		print(bcolors.OKCYAN + "Vous pouvez mettre désactivé les prochains chargements de données dans la base Redis en déclarant la variable TEST à False en fin de fichier" + bcolors.ENDC)
+
+	except redis.exceptions.ConnectionError:
+		print(bcolors.FAIL + "Erreur de connection à la base Redis" + bcolors.ENDC)
+		print(bcolors.WARNING + "call_center.py : Lancez le service Redis avec ../src/redis-server en vous placant au prealable dans un dossier de données" + bcolors.ENDC)
