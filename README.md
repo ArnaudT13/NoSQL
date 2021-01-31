@@ -1,6 +1,8 @@
 # NoSQL
-Date de rendu : 18 janvier
-**Commenter le code réalisé !**
+Pour chaque projet, nous avons implémenté des scripts de définition et manipulation des bases de données. Afin de diversifier encore plus les projets et de manipuler plusieurs technologies, les scripts ont été implémentés en **Python** (pour **Redis** et **Neo4j**), **NodeJS** (pour **Mongodb**) et **Java** (pour **Cassandra**).  
+Pour chacune des bases, des indications sur les objectifs, la construction du code et le lancement des scripts ont été donnés.  
+    
+**Contributeurs : Cédric GORMOND et Arnaud TAVERNIER**
 
 ## 1. Redis
 
@@ -12,13 +14,13 @@ Simulation d'un **call center** avec le stockage de données (appels) à instant
 
 #### 1.2.1 Structure
 
-La manipulation des données de la base Redis est implémenté en **Python** . Nous proposons de plus une interface graphique, réalisée sous **Qt5**.
+La manipulation des données de la base Redis est implémentée en **Python** . Nous proposons de plus une interface graphique, réalisée sous **Qt5**.
 
 Le projet Redis est composé de deux fichiers :
 
-- `call_center.py` qui représente toute la gestion de la base Redis, de la connection à la création d'appels et d'opérateurs.
+- `call_center.py` qui représente toute la gestion de la base Redis, de la connexion à la création d'appels et d'opérateurs.
 
-- `UI.py` qui compose l'interface graphique. **Ce fichier est du génie logiciel, il n'est pas très interessant de le regarder**
+- `UI.py` qui compose l'interface graphique. **Ce fichier est du génie logiciel, il n'est pas très intéressant de le regarder**
 
 #### 1.2.2 Utilisation
 
@@ -32,7 +34,7 @@ Nous avons 3 onglets dans l'interface graphique :
 
 	- La visualisation de tous les appels
 
-	- La création d'un appel avec la spécification d'une descrition, d'un numéro, d'une heure, d'une durée et la sélection du statut avec l'affectation de l'opérateur. La création d'un appel utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
+	- La création d'un appel avec la spécification d'une description, d'un numéro, d'une heure, d'une durée et la sélection du statut avec l'affectation de l'opérateur. La création d'un appel utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
 
 		Tous les champs doivent être inscrits avant d'ajouter un appel. Cependant, l'interface ne possède pas de sécurité qui vérifie le bon type de donnée.
 
@@ -44,7 +46,7 @@ Nous avons 3 onglets dans l'interface graphique :
 
 	- La visualisation de tous les opérateurs
 
-	- La création d'un opérateur avec la spécification d'un prenom, d'un nom, d'une date de naissance , d'une date d'arrivée. La création d'un opérateur rend celui-ci disponible sur la page gestion des appels. La création utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
+	- La création d'un opérateur avec la spécification d'un prénom, d'un nom, d'une date de naissance, d'une date d'arrivée. La création d'un opérateur rend celui-ci disponible sur la page gestion des appels. La création utilise diverses fonctionnalités Redis décrites dans le script `call_management`.
 
 		Tous les champs doivent être inscrits avant d'ajouter un opérateur. Cependant, l'interface ne possède pas de sécurité qui vérifie le bon type de donnée.
 
@@ -59,11 +61,11 @@ Nous avons 3 onglets dans l'interface graphique :
 ### 1.3 Lancement:
 
 - Installation et configuration de Redis
-- Créez un dossier `data` (ou autre selon vos préférénces) dans `redis-6.X.X` 
+- Créez un dossier `data` (ou autre selon vos préférences) dans `redis-6.X.X` 
 - Déplacez-vous dans ce dossier `data` 
 - Lancez le service Redis avec `../src/redis-server`
-- Lancez premierement le script `call-center.py` afin de charger les données dans redis
-- Lancez ensuite le fichier `UI.py` pour pouvoir utiliser l'interface graphique 
+- Lancez premièrement le script `call-center.py` afin de charger les données dans redis
+- Lancez ensuite le fichier `UI.py` pour pouvoir utiliser l'interface graphique. Vous pouvez désactiver le chargement des données dans la base, en mettant la variable `TEST` à `False` à la fin du fichier `call-center.py`.
  
 ## 2. Mongodb
 ### 2.1 Objectifs:
@@ -118,11 +120,11 @@ Les fonctions suivantes y sont décrites:
  - Installation du module Python `neo4j` : `pip install neo4j`
  - Aller dans le dossier *neo4j* et lancer le script Python : `linkedin-like.py`
  
- ## 4. Cassandra
+## 4. Cassandra
 
 ### 4.1 Objectif:
 
-Modéliser dans Cassandra des données issues de stations métérologiques
+Modéliser dans Cassandra des données issues de stations météorologique
 
 ### 4.2 Explications:
 
@@ -138,15 +140,15 @@ Les fonctions suivantes y sont décrites:
 
 - Création d'une table avec la méthode `createTable(String tableName)`
 
-	Ici, nous créons une table `weather` pour stockées nos données météo. Ces données sont réprsentées par un :
+	Ici, nous créons une table `weather` pour stocker nos données météo. Ces données sont représentées par un :
 
-	- `id` unique (correlé avec le temps par la fonction `timeuuid`)
+	- `id` unique (corrélé avec le temps par la fonction `timeuuid`)
 	- `idStation` qui permet d'identifier la station source de la donnée.
 	- `longitude/latitude` de la donnée météo
 	- `time` date et heure à laquelle la donnée a été capturée (timestamp en ms)
 	- `temperature/humidity/pressure` données météorologique
 
-	Pour le requetage des données, nous avons définie une clé primaire `PRIMARY KEY (idStation, time, id) )` unique avec `idStation` en clé de partition et `(time, id)` en clé de clustering
+	Pour le requêtage des données, nous avons définie une clé primaire `PRIMARY KEY (idStation, time, id) )` unique avec `idStation` en clé de partition et `(time, id)` en clé de clustering
 
 - Création d'une table avec la méthode `deleteTable(String tableName)`
 
@@ -154,7 +156,7 @@ Les fonctions suivantes y sont décrites:
 
 - Suppression d'une donnée météo suivant son id avec `deleteValue(String tableName, long id)`
 
-- Execution et affichage d'une requete avec `executeAndDisplayQuery()` qui permet :
+- Exécution et affichage d'une requete avec `executeAndDisplayQuery()` qui permet :
 
 	- Affichage d'une table (exemple : `SELECT * FROM weather` )
 	- Affichage d'une table avec des conditions sur la station météo d'origine (exemple : `SELECT * FROM weather WHERE idStation = 1` )
@@ -163,7 +165,7 @@ Les fonctions suivantes y sont décrites:
 
 ### 4.3 Lancement:
 
-Nous avons utilisé un Docker pour lancer pour faciliment un service Cassandra
+Nous avons utilisé un Docker pour lancer pour facilement un service Cassandra
 
 - Installez Cassandra sous Docker avec `docker pull cassandra` et configurez l'adresse/port `localhost:9042`
 - Lancer le container Cassandra (le service sera actif automatiquement)
