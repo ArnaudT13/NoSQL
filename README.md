@@ -61,7 +61,9 @@ Nous avons 3 onglets dans l'interface graphique :
 - Installation et configuration de Redis
 - Créez un dossier `data` (ou autre selon vos préférénces) dans `redis-6.X.X` 
 - Déplacez-vous dans ce dossier `data` 
-- Lancer le service Redis avec `../src/redis-server`
+- Lancez le service Redis avec `../src/redis-server`
+- Lancez premierement le script `call-center.py` afin de charger les données dans redis
+- Lancez ensuite le fichier `UI.py` pour pouvoir utiliser l'interface graphique 
  
 ## 2. Mongodb
 ### 2.1 Objectifs:
